@@ -1,0 +1,183 @@
+Script started on 2022-01-06 15:18:01+08:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="80" LINES="24"]
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ ls
+5  hw05.c  script_hw05  t  teacher.c
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ cat hw05.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/signal.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#define ERR    (-1)             /* indicates an error condition */
+
+int times_up();
+int controlc_up();
+void Who();
+void Uptime();
+
+void main(){
+	signal (SIGALRM, times_up);         /* go to the times_up function  */
+    signal (SIGINT, controlc_up);         /* go to the times_up function  */
+                                        /* when the alarm goes off.     */
+    alarm (10);                         /* set the alarm for 10 seconds */
+
+    for (;;)                          /* endless loop.                */
+       ;                                /* hope the alarm works.        */
+}
+
+int times_up(sig)
+ int sig;                               /* value of signal              */
+ {
+ 	alarm (10);
+ 	ChildProcess(Who);
+ 	ChildProcess(Uptime);
+ }
+
+ int controlc_up(sig)
+ int sig;                               /* value of signal              */
+ {
+    ChildProcess(Who);
+ 	ChildProcess(Uptime);
+ }
+
+ void ChildProcess( void (*Opt)()){
+ 	int pid;
+ 	int exit_sig;
+ 	if (( pid = fork () ) == ERR)        /* create 1st child   */
+	{
+	    perror (" ");
+	    exit (ERR);
+	}
+
+	if( pid == 0 ){
+		Opt();
+		exit(0);
+	}
+	else{
+		waitpid(pid);
+	}
+
+ }
+
+ void Who(){
+ 	execl ("/usr/bin/who", "who", (char *) NULL);
+ }
+
+ void Uptime(){
+ 	execl ("/usr/bin/uptime", "uptime", (char *) NULL);
+ }
+
+
+
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ gcc hw05.c -o 5
+hw05.c: In function ‘main’:
+hw05.c:16:19: warning: passing argument 2 of ‘signa
+l’ from incompatible pointer type [-Wincompatible-pointer-types
+]
+   16 |  signal (SIGALRM, times_up);         /* go to the times_up 
+function  */
+      |                   ^~~~~~~~
+      |                   |
+      |                   int (*)()
+In file included from /usr/include/x86_64-linux-gnu/sys/signal.h:1,
+                 from hw05.c:3:
+/usr/include/signal.h:88:57: note: expected ‘__sigh
+andler_t’ {aka ‘void (*)(int)’} but argument is of type ‘int
+ (*)()’
+   88 | extern __sighandler_t signal (int __sig, __sighandler_t __handl
+er)
+      |                                          ~~~~~~~~~~~~~~~^~~~~~~
+~~
+hw05.c:17:21: warning: passing argument 2 of ‘signa
+l’ from incompatible pointer type [-Wincompatible-pointer-types
+]
+   17 |     signal (SIGINT, controlc_up);         /* go to the time
+s_up function  */
+      |                     ^~~~~~~~~~~
+      |                     |
+      |                     int (*)()
+In file included from /usr/include/x86_64-linux-gnu/sys/signal.h:1,
+                 from hw05.c:3:
+/usr/include/signal.h:88:57: note: expected ‘__sigh
+andler_t’ {aka ‘void (*)(int)’} but argument is of type ‘int
+ (*)()’
+   88 | extern __sighandler_t signal (int __sig, __sighandler_t __handl
+er)
+      |                                          ~~~~~~~~~~~~~~~^~~~~~~
+~~
+hw05.c:19:5: warning: implicit declaration of function ‘
+alarm’ [-Wimplicit-function-declaration]
+   19 |     alarm (10);                         /* set the alarm fo
+r 10 seconds */
+      |     ^~~~~
+hw05.c: In function ‘times_up’:
+hw05.c:29:3: warning: implicit declaration of function ‘
+ChildProcess’ [-Wimplicit-function-declaration]
+   29 |   ChildProcess(Who);
+      |   ^~~~~~~~~~~~
+hw05.c: At top level:
+hw05.c:40:7: warning: conflicting types for ‘ChildP
+rocess’
+   40 |  void ChildProcess( void (*Opt)()){
+      |       ^~~~~~~~~~~~
+hw05.c:29:3: note: previous implicit declaration of ‘
+ChildProcess’ was here
+   29 |   ChildProcess(Who);
+      |   ^~~~~~~~~~~~
+hw05.c: In function ‘ChildProcess’:
+hw05.c:43:15: warning: implicit declaration of function ‘
+fork’ [-Wimplicit-function-declaration]
+   43 |   if (( pid = fork () ) == ERR)        /* create 1st child 
+  */
+      |               ^~~~
+hw05.c:54:3: warning: implicit declaration of function ‘
+waitpid’ [-Wimplicit-function-declaration]
+   54 |   waitpid(pid);
+      |   ^~~~~~~
+hw05.c: In function ‘Who’:
+hw05.c:60:3: warning: implicit declaration of function ‘
+execl’ [-Wimplicit-function-declaration]
+   60 |   execl ("/usr/bin/who", "who", (char *) NULL);
+      |   ^~~~~
+hw05.c:60:3: warning: incompatible implicit declaration o
+f built-in function ‘execl’
+hw05.c: In function ‘Uptime’:
+hw05.c:64:3: warning: incompatible implicit declaration o
+f built-in function ‘execl’
+   64 |   execl ("/usr/bin/uptime", "uptime", (char *) NULL);
+      |   ^~~~~
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ ./5
+cn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:01 up  1:18,  1 user,  load average: 0.46, 0.44, 0.48
+^Ccn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:08 up  1:18,  1 user,  load average: 0.50, 0.45, 0.48
+^Ccn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:10 up  1:18,  1 user,  load average: 0.54, 0.46, 0.48
+cn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:11 up  1:18,  1 user,  load average: 0.54, 0.46, 0.48
+cn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:21 up  1:18,  1 user,  load average: 0.61, 0.48, 0.49
+cn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:31 up  1:18,  1 user,  load average: 0.67, 0.50, 0.49
+^Ccn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:33 up  1:18,  1 user,  load average: 0.67, 0.50, 0.49
+^Ccn2021   :0           2022-01-03 17:06 (:0)
+ 15:19:34 up  1:18,  1 user,  load average: 0.67, 0.50, 0.49
+^Z
+[1]+  Stopped                 ./5
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ ps
+    PID TTY          TIME CMD
+  16577 pts/1    00:00:00 bash
+  16593 pts/1    00:00:43 5
+  16616 pts/1    00:00:00 ps
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ kill -9 16593
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ ps
+    PID TTY          TIME CMD
+  16577 pts/1    00:00:00 bash
+  16617 pts/1    00:00:00 ps
+[1]+  Killed                  ./5
+cn2021@cn2021-VirtualBox:~/Desktop/OS/signal$ exit
+exit
+
+Script done on 2022-01-06 15:20:00+08:00 [COMMAND_EXIT_CODE="0"]
